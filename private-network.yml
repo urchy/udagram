@@ -15,7 +15,7 @@ Parameters:
         Type: String
         Default: 10.0.3.0/24
 Resources:
-    UdagramVPC:
+    VPC:
         Type: AWS::EC2::VPC
         Properties:
             CidrBlock: !Ref VpcCIDR
@@ -26,7 +26,7 @@ Resources:
     PrivateSubnet1:
         Type: AWS::EC2::Subnet
         Properties:
-            VpcId: !Ref UdagramVPC
+            VpcId: !Ref VPC
             AvailabilityZone: !Select [ 0, !GetAZs '' ]
             CidrBlock: !Ref PrivateSubnet1CIDR
             MapPublicIpOnLaunch: false
@@ -36,7 +36,7 @@ Resources:
     PrivateSubnet2:
         Type: AWS::EC2::Subnet
         Properties:
-            VpcId: !Ref UdagramVPC
+            VpcId: !Ref VPC
             AvailabilityZone: !Select [ 1, !GetAZs '' ]
             CidrBlock: !Ref PrivateSubnet2CIDR
             MapPublicIpOnLaunch: false
@@ -46,34 +46,14 @@ Resources:
     PrivateRouteTable1:
         Type: AWS::EC2::RouteTable
         Properties:
-            VpcId: !Ref UdagramVPC
+            VpcId: !Ref VPC
             Tags:
                 - Key: Name
                   Value: !Sub ${EnvironmentName} Private Routes (AZ1)
-    DefaultPrivateRoute1:
-        Type: AWS::EC2::Route
-        Properties:
-            RouteTableId: !Ref PrivateRouteTable1
-            DestinationCidrBlock: 0.0.0.0/0
-    PrivateSubnet1RouteTableAssociation:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            RouteTableId: !Ref PrivateRouteTable1
-            SubnetId: !Ref PrivateSubnet1
     PrivateRouteTable2:
         Type: AWS::EC2::RouteTable
         Properties:
-          VpcId: !Ref UdagramVPC
+          VpcId: !Ref VPC
           Tags:
             - Key: Name
               Value: !Sub ${EnvironmentName} Private Routes (AZ2)
-    DefaultPrivateRoute2:
-        Type: AWS::EC2::Route
-        Properties:
-          RouteTableId: !Ref PrivateRouteTable2
-          DestinationCidrBlock: 0.0.0.0/0
-    PrivateSubnet2RouteTableAssociation:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-          RouteTableId: !Ref PrivateRouteTable2
-          SubnetId: !Ref PrivateSubnet2
