@@ -111,3 +111,14 @@ Resources:
             - Key: Name
               Value: !Sub ${EnvironmentName} Private Routes (AZ2)
 
+    NatGateway1EIP:
+        Type: AWS::EC2::EIP
+        DependsOn: InternetGatewayAttachment
+        Properties:
+            Domain: vpc
+
+    NatGateway2EIP:
+        Type: AWS::EC2::EIP
+        DependsOn: InternetGatewayAttachment
+        Properties:
+            Domain: vpc
