@@ -2,5 +2,9 @@
 	{
 		"ParameterKey": "EnvironmentName",
 		"ParameterValue": "Udagram-Project"
-	}
+	},
+  	{
+        "ParameterKey": "AMItoUse",
+        "ParameterValue": "ami-08962a4068733a2b6"
+  	}
 ]
