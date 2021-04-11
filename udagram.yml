@@ -227,9 +227,6 @@ Resources:
         Type: AWS::EC2::SecurityGroup
         Properties:
           GroupDescription: Allow http traffic to our load balancer
-          VpcId:
-            Fn::ImportValue:
-              !Sub "${EnvironmentName}-VPCID"
           SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 80
@@ -246,9 +243,6 @@ Resources:
         Type: AWS::EC2::SecurityGroup
         Properties:
           GroupDescription: Allow http to our hosts and SSH from local only
-          VpcId:
-            Fn::ImportValue:
-              !Sub "${EnvironmentName}-VPCID"
           SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 80
@@ -263,22 +257,92 @@ Resources:
             FromPort: 0
             ToPort: 65535
             CidrIp: 0.0.0.0/0
-            
-Outputs:
-    VPC:
-        Description: Created VPC
-        Value: !Ref VPC
-        Export:
-          Name: !Sub ${EnvironmentName}-VPCID
 
-    PublicSubnets:
-        Description: Public subnets
-        Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
-        Export:
-          Name: !Sub ${EnvironmentName}-PUB-NETS
+ ################# Compute #############       
+    #Auto-scale group template
+    AppLaunchConfig:
+        Type: AWS::AutoScaling::LaunchConfiguration
+        Properties:
+            UserData:
+                Fn::Base64: !Sub |
+                    #!/bin/bash
+                    apt-get update -y
+                    apt-get install unzip awscli -y
+                    apt-get install apache2 -y
+                    systemctl start apache2.service
+                    cd /var/www/html
+                    aws s3 cp s3://devops-engineer-nanodegree-project-2/sample.zip .
+                    unzip -o sample.zip
+            ImageId: !Ref AMItoUse
+            IamInstanceProfile: !Ref ServerInstanceProfile
+            SecurityGroups:
+            - Ref: WebSG
+            InstanceType: t3.medium
+            BlockDeviceMappings:
+            - DeviceName: "/dev/sdk"
+              Ebs:
+                VolumeSize: '10'
 
-    PrivateSubnets:
-        Description: Private subnets
-        Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
-        Export:
-          Name: !Sub ${EnvironmentName}-PRIV-NETS
+    #LB - targetGroup
+    AppTargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            HealthCheckIntervalSeconds: 10
+            HealthCheckPath: /
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 8
+            HealthyThresholdCount: 2
+            Port: 80
+            Protocol: HTTP
+            UnhealthyThresholdCount: 5
+            VpcId: !Ref VPC
+
+    #Auto-scale group definition
+    WebAppGroup:
+        Type: AWS::AutoScaling::AutoScalingGroup
+        Properties:
+            VPCZoneIdentifier:
+                - !Ref PrivateSubnet1
+                - !Ref PrivateSubnet2
+            LaunchConfigurationName:
+                Ref: AppLaunchConfig
+            MinSize: '4'
+            MaxSize: '6'
+            TargetGroupARNs:
+                - Ref: AppTargetGroup
+
+    #LB
+    AppLB:
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        Properties:
+            SecurityGroups:
+                - Ref: LBSecGroup
+            Subnets:
+                - !Ref PublicSubnet1
+                - !Ref PublicSubnet2
+
+    #LB - listener
+    Listener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Properties:
+            DefaultActions:
+                - Type: forward
+                  TargetGroupArn:
+                      Ref: AppTargetGroup
+            LoadBalancerArn:
+                Ref: AppLB
+            Port: 80
+            Protocol: HTTP
+
+    ALBListenerRule:
+        Type: AWS::ElasticLoadBalancingV2::ListenerRule
+        Properties:
+            Actions:
+                - Type: forward
+                  TargetGroupArn: !Ref 'AppTargetGroup'
+            Conditions:
+                - Field: path-pattern
+                  Values: [ / ]
+            ListenerArn: !Ref 'Listener'
+            Priority: 1
+

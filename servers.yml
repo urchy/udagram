@@ -11,7 +11,7 @@ Parameters:
         Type: String
 
 Resources:
-    #secutiry
+    ######secutiry######
     # role to S3
     S3ReadOnlyEC2:
         Type: AWS::IAM::Role
@@ -96,6 +96,7 @@ Resources:
             ToPort: 65535
             CidrIp: 0.0.0.0/0
 
+    ################# Compute #############       
     #Auto-scale group template
     AppLaunchConfig:
         Type: AWS::AutoScaling::LaunchConfiguration
