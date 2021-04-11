@@ -59,9 +59,6 @@ Resources:
         Type: AWS::EC2::SecurityGroup
         Properties:
           GroupDescription: Allow http traffic to our load balancer
-          VpcId:
-            Fn::ImportValue:
-              !Sub "${EnvironmentName}-VPCID"
           SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 80
@@ -78,9 +75,6 @@ Resources:
         Type: AWS::EC2::SecurityGroup
         Properties:
           GroupDescription: Allow http to our hosts and SSH from local only
-          VpcId:
-            Fn::ImportValue:
-              !Sub "${EnvironmentName}-VPCID"
           SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 80
@@ -96,7 +90,7 @@ Resources:
             ToPort: 65535
             CidrIp: 0.0.0.0/0
 
-    ################# Compute #############       
+ ################# Compute #############       
     #Auto-scale group template
     AppLaunchConfig:
         Type: AWS::AutoScaling::LaunchConfiguration
@@ -154,7 +148,7 @@ Resources:
         Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         Properties:
             SecurityGroups:
-                - Ref: LoadBalancerSecGroup
+                - Ref: LBSecGroup
             Subnets:
                 - !Ref PublicSubnet1
                 - !Ref PublicSubnet2
@@ -166,7 +160,7 @@ Resources:
             DefaultActions:
                 - Type: forward
                   TargetGroupArn:
-                      Ref: WebAppTargetGroup
+                      Ref: AppTargetGroup
             LoadBalancerArn:
                 Ref: AppLB
             Port: 80
