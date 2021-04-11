@@ -3,9 +3,13 @@ Udacity Udagram Project - second project for the Udacity Nanodegree Cloud DevOps
 
 ## Step 1
 Run network.yml
-`aws cloudformation create-stack --stack-name network --template-body file://network.yml --parameters file://network-params.json --capabilities CAPABILITY_IAM`
+`./create.sh network network.yml network-params.json`
 
 ## Step 2
 Run bastion-server.yml
-`aws cloudformation create-stack --stack-name servers --template-body file://servers.yml --parameters file://servers-params.json --capabilities CAPABILITY_IAM`
+`./create.sh servers servers.yml servers-params.json`
+
+## Step 3
+`./destroy.sh network`
+`./destroy.sh servers`
 
