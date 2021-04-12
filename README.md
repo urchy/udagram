@@ -4,12 +4,12 @@ Udacity Udagram Project - second project for the Udacity Nanodegree Cloud DevOps
 ## Step 1
 Run network.yml
 
-`./create.sh network network.yml network-params.json`
+`./create.sh network network.yml network-parameters.json`
 
 ## Step 2
 Run serves.yml
 
-`./create.sh servers servers.yml servers-params.json`
+`./create.sh servers servers.yml servers-parameters.json`
 
 ## Step 3
 
